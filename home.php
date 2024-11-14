@@ -68,7 +68,7 @@
             <a href="#home">Home</a>
             <a href="#about">About</a>
             <a href="#footer">Services</a>
-            <a href="/app/appointment.php">Contact</a> 
+            <a href="booking.php">Contact</a> 
             <!-- <?php if (!isset($_SESSION['loggedin'])): ?> 
                 <a href="/app/registor.php">Register</a> 
             <?php endif; ?> -->
@@ -89,7 +89,7 @@
                     <div class="col-md-6 content">
                         <h3>We take care of your healthy life</h3>
                         <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Laudantium itaque, ullam distinctio veritatis excepturi, aperiam, dolorum culpa consequuntur quos saepe iure. Excepturi, velit saepe.</p>
-                        <a href="app/appointment.php" class="link-btn">Make Appointment</a>
+                        <a href="booking.php" class="link-btn">Make Appointment</a>
                     </div>
 
                     <div class="col-md-6">
@@ -148,7 +148,7 @@
                 <img src="uploadImage/image/book.svg" alt="Book Appointment" class="img-fluid" style="max-width: 700px;">
                 <h2>Need an Appointment?</h2>
                 <p>Book your appointment online with ease.</p>
-                <a href="app/appointment.php" class="link-btn">Book Now</a>
+                <a href="booking.php" class="link-btn">Book Now</a>
             </div>
         </section>
 
