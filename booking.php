@@ -9,10 +9,10 @@ if ($conn === false) {
 }
 
 // Check if the patient is logged in
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'patient') {
-    header("Location: login.php"); // Redirect to login if not a logged-in patient
-    exit();
-}
+// if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'patient') {
+//     header("Location: login.php"); // Redirect to login if not a logged-in patient
+//     exit();
+// }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $patientId = $_SESSION['user_id'];
