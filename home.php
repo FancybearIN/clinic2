@@ -75,7 +75,7 @@
 
         </nav>
 
-        <a href="app/registor.php" class="link-btn">Registor/Login</a>
+        <a href="app/registor.php" class="link-btn">Registor</a>
 
         <div id="menu-btn" class="fas fa-bars"></div>
     </header>
@@ -94,7 +94,7 @@
 
                     <div class="col-md-6">
                         <!-- <div id="doctor-profile-container"> -->
-                            <img src="image/home.svg" alt="Book Appointment" class="img-fluid" > 
+                            <img src="uploadImage/image/home.svg" alt="Book Appointment" class="img-fluid" > 
                             <!-- style="max-width: 700px;">  -->
                         <!-- </div> -->
                     </div>
@@ -129,13 +129,13 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-md-6 image">
-                        <img src="image/about.svg" class="w-100 mb-5 mb-md-0" alt="About Us"> 
+                        <img src="uploadImage/image/about.svg" class="w-100 mb-5 mb-md-0" alt="About Us"> 
                     </div>
 
                     <div class="col-md-6 content">
                         <span>about us</span>
                         <h3>Caring for you is our priority</h3>
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae reiciendis accusamus fugit necessitatibus nemo illum, repudiandae quos, magni iusto ullam. Minima assumenda saepe culpa praesentium. Esse adipisci animi voluptates!</p>
+                        /home/fancy/vscode/clinic/image<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae reiciendis accusamus fugit necessitatibus nemo illum, repudiandae quos, magni iusto ullam. Minima assumenda saepe culpa praesentium. Esse adipisci animi voluptates!</p>
                         <a href="/about" class="link-btn">learn more</a> 
                     </div>
                 </div>
@@ -145,7 +145,7 @@
         <!-- --- BOOKING SECTION --- -->
         <section class="booking" id="booking">
             <div class="container">
-                <img src="image/book.svg" alt="Book Appointment" class="img-fluid" style="max-width: 700px;">
+                <img src="uploadImage/image/book.svg" alt="Book Appointment" class="img-fluid" style="max-width: 700px;">
                 <h2>Need an Appointment?</h2>
                 <p>Book your appointment online with ease.</p>
                 <a href="app/appointment.php" class="link-btn">Book Now</a>
