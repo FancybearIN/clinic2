@@ -1,264 +1,129 @@
-<?php require_once('check_login.php');?>
-<?php include('head.php');?>
-<?php include('header.php');?>
-<?php include('sidebar.php');?>
-<?php include('connect.php');
-
-if(isset($_POST['btn_submit']))
-{
-  if(isset($_GET['editid']))
-  {
-    $sql ="UPDATE appointment SET patientid='$_POST[patient]',departmentid='$_POST[department]',appointmentdate='$_POST[appointmentdate]',appointmenttime='$_POST[appointmenttime]',doctorid='$_POST[doctor]',status='$_POST[status]' WHERE appointmentid='$_GET[editid]'";
-        if($qsql = mysqli_query($conn,$sql))
-        {
-?>
-            <div class="popup popup--icon -success js_success-popup popup--visible">
-              <div class="popup__background"></div>
-              <div class="popup__content">
-                <h3 class="popup__content__title">
-                  Success
-                </h3>
-                <p>Appointment Record Updated Successfully</p>
-                <p>
-                 <!--  <a href="index.php"><button class="button button--success" data-for="js_success-popup"></button></a> -->
-                 <?php echo "<script>setTimeout(\"location.href = 'appointment.php';\",1500);</script>"; ?>
-                </p>
-              </div>
-            </div>
 <?php
-        }
-        else
-        {
-            echo mysqli_error($conn);
-        }
-    }
-    else
-    {
-       $sql ="UPDATE patient SET status='Active' WHERE patientid='$_POST[patient]'";
-       $qsql=mysqli_query($conn,$sql);
+session_start();
 
-       $sql ="INSERT INTO appointment(patientid, departmentid, appointmentdate, appointmenttime, doctorid, status, app_reason) values('$_POST[patient]','$_POST[department]','$_POST[appointmentdate]','$_POST[appointmenttime]','$_POST[doctor]','$_POST[status]','$_POST[reason]')";
-        if($qsql = mysqli_query($conn,$sql))
-        {
+// Database connection using mysqli (XAMPP)
+$conn = mysqli_connect("localhost", "root", "", "clinic_db");
 
-            //include("insertbillingrecord.php");
-?>
-            <div class="popup popup--icon -success js_success-popup popup--visible">
-              <div class="popup__background"></div>
-              <div class="popup__content">
-                <h3 class="popup__content__title">
-                  Success
-                </h3>
-                <p>Appointment Record Inserted Successfully</p>
-                <p>
-                 <!--  <a href="index.php"><button class="button button--success" data-for="js_success-popup"></button></a> -->
-                 <?php echo "<script>setTimeout(\"location.href = 'appointment.php?patientid=$_POST[patient]';\",1500);</script>"; ?>
-                </p>
-              </div>
-            </div>
-<?php
-        }
-        else
-        {
-            echo mysqli_error($conn);
-        }
-    }
-}
-if(isset($_GET['editid']))
-{
-    $sql="SELECT * FROM appointment WHERE appointmentid='$_GET[editid]' ";
-    $qsql = mysqli_query($conn,$sql);
-    $rsedit = mysqli_fetch_array($qsql);
-
+if ($conn === false) {
+    die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 
+// Check if the patient is logged in
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'patient') {
+    header("Location: login.php"); // Redirect to login if not a logged-in patient
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $patientId = $_SESSION['user_id'];
+    $departmentId = $_POST['department'];
+    $doctorId = $_POST['doctor'];
+    $appointmentDate = $_POST['appointment_date'];
+    $appointmentTime = $_POST['appointment_time'];
+    $reason = $_POST['reason'];
+
+    // Input validation (add more as needed)
+    if (empty($departmentId) || empty($doctorId) || empty($appointmentDate) || empty($appointmentTime)) {
+        $error = "All fields are required.";
+    } else {
+        // Check for existing appointments (optional - depends on your logic)
+        $checkSql = "SELECT * FROM appointment 
+                     WHERE patientid = ? AND appointmentdate = ? AND appointmenttime = ? AND (status = 'Pending' OR status = 'Approved')"; // Prevent double-booking
+        $stmtCheck = mysqli_prepare($conn, $checkSql);
+        mysqli_stmt_bind_param($stmtCheck, "iss", $patientId, $appointmentDate, $appointmentTime);
+        mysqli_stmt_execute($stmtCheck);
+        $resultCheck = mysqli_stmt_get_result($stmtCheck);
+
+        if (mysqli_num_rows($resultCheck) > 0) {
+            $error = "You already have an appointment scheduled for this date and time.";
+        } else {
+            $sql = "INSERT INTO appointment (patientid, departmentid, doctorid, appointmentdate, appointmenttime, app_reason, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, 'Pending')";
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param($stmt, "iiisss", $patientId, $departmentId, $doctorId, $appointmentDate, $appointmentTime, $reason);
+
+            if (mysqli_stmt_execute($stmt)) {
+                $success = "Appointment request submitted successfully!";
+                // Clear form fields after successful submission (optional)
+
+                // Redirect to a confirmation or thank you page
+                header("Location: booking_confirmation.php"); // Create this page
+                exit();
+            } else {
+                $error = "Error submitting appointment: " . mysqli_error($conn); // More specific error message
+            }
+            mysqli_stmt_close($stmt); // Close the prepared statement
+        }
+        mysqli_stmt_close($stmtCheck);
+    }
+}
+
+// Fetch departments and doctors (for dropdowns)
+$departments = $conn->query("SELECT * FROM department WHERE status='Active'")->fetch_all(MYSQLI_ASSOC); // Use fetch_all for mysqli
+$doctors = $conn->query("SELECT * FROM doctor WHERE status='Active'")->fetch_all(MYSQLI_ASSOC);
+
+mysqli_close($conn); // Close the connection
 ?>
-<script src="https://cdn.ckeditor.com/4.12.1/standard/ckeditor.js"></script>
+<!-- ... (HTML form - similar to previous example, but modified for patient use) ... -->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Book Appointment</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+<style>
+  /* ... (Your CSS styles) ... */
+</style>
 
-<div class="pcoded-content">
-<div class="pcoded-inner-content">
+</head>
+<body>
+<div class="container">
+  <div class="appointment-form">
+    <h2>Book Appointment</h2>
 
-<div class="main-body">
-<div class="page-wrapper">
+    <?php if (isset($error)): ?>
+      <p class="text-danger"><?php echo $error; ?></p>
+    <?php endif; ?>
+    <?php if (isset($success)): ?>
+      <p class="text-success"><?php echo $success; ?></p>
+    <?php endif; ?>
 
-<div class="page-header">
-<div class="row align-items-end">
-<div class="col-lg-8">
-<div class="page-header-title">
-<div class="d-inline">
-<h4>Appointment</h4>
-<!-- <span>Lorem ipsum dolor sit <code>amet</code>, consectetur adipisicing elit</span> -->
+    <form method="post">
+    <div class="form-group">
+        <label for="department">Department:</label>
+        <select name="department" id="department" class="form-control" required>
+          <option value="">Select Department</option>
+          <?php foreach ($departments as $department): ?>
+            <option value="<?php echo $department['departmentid']; ?>"><?php echo $department['departmentname']; ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="doctor">Doctor:</label>
+        <select name="doctor" id="doctor" class="form-control" required>
+          <option value="">Select Doctor</option>
+          <?php foreach ($doctors as $doctor): ?>
+            <option value="<?php echo $doctor['doctorid']; ?>"><?php echo $doctor['doctorname']; ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="appointment_date">Date:</label>
+        <input type="date" name="appointment_date" id="appointment_date" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="appointment_time">Time:</label>
+        <input type="time" name="appointment_time" id="appointment_time" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="reason">Reason:</label>
+        <textarea name="reason" id="reason" class="form-control"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Book Appointment</button>
+    </form>
+  </div>
 </div>
-</div>
-</div>
-<div class="col-lg-4">
-<div class="page-header-breadcrumb">
-<ul class="breadcrumb-title">
-<li class="breadcrumb-item">
-<a href="index.php"> <i class="feather icon-home"></i> </a>
-</li>
-<li class="breadcrumb-item"><a>Appointment</a>
-</li>
-<li class="breadcrumb-item"><a href="appointment.php">Appointment</a>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
+</body>
+</html>
 
-
-<div class="page-body">
-<div class="row">
-<div class="col-sm-12">
-
-<div class="card">
-<div class="card-header">
-
-</div>
-<div class="card-block">
-<form id="main" method="post" action="" enctype="multipart/form-data">
-    <?php
-        if(isset($_GET['patid']))
-        {
-            $sqlpatient= "SELECT * FROM patient WHERE patientid='".$_GET['patid']."'";
-            $qsqlpatient = mysqli_query($con,$sqlpatient);
-            $rspatient=mysqli_fetch_array($qsqlpatient);
-            echo $rspatient[patientname] . " (Patient ID - $rspatient[patientid])";
-            echo "<input type='hidden' name='select4' value='$rspatient[patientid]'>";
-        }
-    ?>
-
-    <div class="form-group row">
-        <label class="col-sm-2 col-form-label">Patient</label>
-        <div class="col-sm-4">
-            <select class="form-control" name="patient" id="patient" required="">
-                <option>-- Select One--</option>
-    <?php
-        $sqlpatient= "SELECT * FROM patient WHERE status='Active'";
-        $qsqlpatient = mysqli_query($conn,$sqlpatient);
-        while($rspatient=mysqli_fetch_array($qsqlpatient))
-        {
-            if($rspatient[patientid] == $rsedit[patientid])
-            {
-             echo "<option value='$rspatient[patientid]' selected>$rspatient[patientid] - $rspatient[patientname]</option>";
-            }
-            else
-            {
-                echo "<option value='$rspatient[patientid]'>$rspatient[patientid] - $rspatient[patientname]</option>";
-            }
-
-        }
-    ?>
-            </select>
-            <span class="messages"></span>
-        </div>
-
-        <label class="col-sm-2 col-form-label">Department</label>
-        <div class="col-sm-4">
-            <select class="form-control" name="department" id="department" placeholder="Enter lastname...." required="">
-                <option value="">-- Select One --</option>
-                <?php
-                    $sqldepartment= "SELECT * FROM department WHERE status='Active'";
-                    $qsqldepartment = mysqli_query($conn,$sqldepartment);
-                    while($rsdepartment=mysqli_fetch_array($qsqldepartment))
-                    {
-                       if($rsdepartment[departmentid] == $rsedit[departmentid])
-                       {
-                        echo "<option value='$rsdepartment[departmentid]' selected>$rsdepartment[departmentname]</option>";
-                        }
-                        else
-                        {
-                            echo "<option value='$rsdepartment[departmentid]'>$rsdepartment[departmentname]</option>";
-                        }
-
-                    }
-                ?>
-            </select>
-            <span class="messages"></span>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label class="col-sm-2 col-form-label">Date</label>
-        <div class="col-sm-4">
-            <input type="date" class="form-control" name="appointmentdate" id="appointmentdate" required="">
-            <span class="messages"></span>
-        </div>
-
-        <label class="col-sm-2 col-form-label">Time</label>
-        <div class="col-sm-4">
-            <input type="time" class="form-control" name="appointmenttime" id="appointmenttime" required="">
-            <span class="messages"></span>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label class="col-sm-2 col-form-label">Doctor</label>
-        <div class="col-sm-4">
-            <select name="doctor" name="doctor" class="form-control">
-            <option value="">Select Doctor</option>
-            <?php
-                $sqldoctor= "SELECT * FROM doctor INNER JOIN department ON department.departmentid=doctor.departmentid WHERE doctor.status='Active'";
-                $qsqldoctor = mysqli_query($conn,$sqldoctor);
-                while($rsdoctor = mysqli_fetch_array($qsqldoctor))
-                {
-                    if(isset($_GET['patid'])){
-                        if($rsdoctor['doctorid'] == $rsedit['doctorid'])
-                        {
-                            echo "<option value='$rsdoctor[doctorid]' selected>$rsdoctor[doctorname] ( $rsdoctor[departmentname] ) </option>";
-                        }
-                        else
-                        {
-                            echo "<option value='$rsdoctor[doctorid]'>$rsdoctor[doctorname] ( $rsdoctor[departmentname] )</option>";
-                        }
-                    }else{
-                        echo "<option value='$rsdoctor[doctorid]'>$rsdoctor[doctorname] ( $rsdoctor[departmentname] )</option>";
-                    }
-                }
-            ?>
-            </select>
-        </div>
-
-        <label class="col-sm-2 col-form-label">Status</label>
-        <div class="col-sm-4">
-            <select name="status" id="status" class="form-control" required="">
-                <option value="">-- Select One -- </option>
-                <option value="Active" <?php if(isset($_GET['patid']))
-        { if($rsedit[status] == 'Active') { echo 'selected'; } } ?>>Active</option>
-                <option value="Inactive" <?php if(isset($_GET['patid']))
-        { if($rsedit[status] == 'Inactive') { echo 'selected'; } } ?>>Inactive</option>
-            </select>
-            <span class="messages"></span>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label class="col-sm-2 col-form-label">Reason</label>
-        <div class="col-sm-10">
-            <textarea class="form-control" name="reason" id="reason" placeholder="Reason...." required=""><?php if(isset($_GET['patid']))
-        { echo $rsedit['app_reason']; } ?></textarea>
-            <span class="messages"></span>
-        </div>
-    </div>
-
-
-    <div class="form-group row">
-        <label class="col-sm-2"></label>
-        <div class="col-sm-10">
-            <button type="submit" name="btn_submit" class="btn btn-primary m-b-0">Submit</button>
-        </div>
-    </div>
-
-</form>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<?php include('footer.php');?>
